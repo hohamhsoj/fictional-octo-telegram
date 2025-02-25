@@ -1,1 +1,231 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hack VIP - AI Prediction</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background: black;
+            color: #00ff00;
+            text-align: center;
+        }
+
+        header {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            font-size: 26px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 20px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            box-shadow: 0 0 15px #00ff00;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px #00ff00;
+        }
+
+        .game-menu {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .game-item {
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 0 10px #00ff00;
+        }
+
+        .game-item:hover {
+            background: #00ff00;
+            color: black;
+            box-shadow: 0 0 20px #00ff00;
+            transform: scale(1.1);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 12px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            border: 2px solid #00ff00;
+            border-radius: 5px;
+            background: black;
+            color: #00ff00;
+            cursor: pointer;
+            box-shadow: 0 0 10px #00ff00;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #00ff00;
+            color: black;
+            box-shadow: 0 0 20px #00ff00;
+            transform: scale(1.1);
+        }
+
+        footer {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            font-size: 14px;
+            color: #00ff00;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        HACK VIP - AI Prediction
+    </header>
+
+    <!-- Menu Game -->
+    <div class="container" id="menu-game">
+        <h2>Menu Game</h2>
+        <div class="game-menu">
+            <div class="game-item" onclick="showPredictionTool()">
+                <img src="https://via.placeholder.com/80" alt="Game 1">
+                <p>Game 1</p>
+            </div>
+            <div class="game-item" onclick="showPredictionTool()">
+                <img src="https://via.placeholder.com/80" alt="Game 2">
+                <p>Game 2</p>
+            </div>
+            <div class="game-item" onclick="showPredictionTool()">
+                <img src="https://via.placeholder.com/80" alt="Game 3">
+                <p>Game 3</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tool Dự Đoán (Ẩn ban đầu) -->
+    <div class="container hidden" id="prediction-tool">
+        <h2>Tool Dự Đoán Tài Xỉu</h2>
+        <div class="button-group">
+            <button onclick="addResult('Tài')">Tài</button>
+            <button onclick="addResult('Xỉu')">Xỉu</button>
+        </div>
+        <div id="recent-results" style="margin-top: 15px;"></div>
+
+        <h2>Thống Kê</h2>
+        <canvas id="taiXiuChart"></canvas>
+
+        <h2>Dự Đoán Kết Quả</h2>
+        <button onclick="predict()">Dự Đoán AI</button>
+        <div id="prediction-results" style="margin-top: 15px;"></div>
+
+        <h2>Nhập Kết Quả Thực Tế</h2>
+        <div class="button-group">
+            <button onclick="addActualResult('Tài')">Tài</button>
+            <button onclick="addActualResult('Xỉu')">Xỉu</button>
+        </div>
+    </div>
+
+    <footer>
+        &copy; 2025 Hack VIP - AI Prediction
+    </footer>
+
+    <script>
+        let results = [];
+
+        function showPredictionTool() {
+            document.getElementById("menu-game").classList.add("hidden");
+            document.getElementById("prediction-tool").classList.remove("hidden");
+        }
+
+        function addResult(value) {
+            if (results.length >= 8) {
+                alert("Chỉ được nhập tối đa 8 kết quả!");
+                return;
+            }
+            results.push(value);
+            displayResults();
+            updateChart();
+        }
+
+        function displayResults() {
+            const resultContainer = document.getElementById("recent-results");
+            resultContainer.innerHTML = results.map(result => `<span>${result}</span>`).join(" ");
+        }
+
+        function updateChart() {
+            const taiCount = results.filter(r => r === "Tài").length;
+            const xiuCount = results.length - taiCount;
+
+            const ctx = document.getElementById("taiXiuChart").getContext("2d");
+            new Chart(ctx, {
+                type: "pie",
+                data: {
+                    labels: ["Tài", "Xỉu"],
+                    datasets: [{
+                        data: [taiCount, xiuCount],
+                        backgroundColor: ["#ff00ff", "#00eaff"]
+                    }]
+                }
+            });
+        }
+
+        function predict() {
+            if (results.length < 8) {
+                alert("Nhập đủ 8 kết quả trước khi dự đoán!");
+                return;
+            }
+            let taiCount = results.filter(r => r === "Tài").length;
+            let xiuCount = results.length - taiCount;
+            let prediction = taiCount > xiuCount ? "Tài" : "Xỉu";
+
+            document.getElementById("prediction-results").innerHTML = `<span>${prediction}</span>`;
+        }
+
+        function addActualResult(value) {
+            if (results.length < 8) {
+                alert("Nhập đủ 8 kết quả trước khi cập nhật kết quả thực tế!");
+                return;
+            }
+            results.shift();
+            results.push(value);
+            displayResults();
+            updateChart();
+        }
+    </script>
+
+</body>
+</html>
 
